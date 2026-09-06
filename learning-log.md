@@ -1,1 +1,1 @@
-"Learning Git for the hackathon" 
+"learning log understand" 
