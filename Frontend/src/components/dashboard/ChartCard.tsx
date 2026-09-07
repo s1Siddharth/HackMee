@@ -9,6 +9,8 @@ import {
   Area,
   ScatterChart,
   Scatter,
+  PieChart,
+  Pie,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -22,6 +24,7 @@ import {
   TrendingUp,
   BarChart3,
   ScatterChart as ScatterIcon,
+  PieChart as PieIcon,
   Sparkles,
   Info,
   Layers,
@@ -36,23 +39,32 @@ interface ChartCardProps {
 }
 
 // Cluster and theme palettes
-const CLUSTER_COLORS = ['#6366F1', '#06B6D4', '#10B981', '#F59E0B', '#EC4899']
+const CLUSTER_COLORS = ['#6366F1', '#06B6D4', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#14B8A6', '#F43F5E']
+
+const formatLabel = (str: string) => {
+  if (!str) return ''
+  return str
+    .replace(/^please_(?:enter|select)_your_/i, '')
+    .replace(/^please_(?:enter|select)_/i, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 shadow-2xl backdrop-blur-md text-xs z-50">
         <div className="font-semibold text-[var(--text-primary)] mb-1 border-b border-[var(--border-subtle)] pb-1">
-          {label || payload[0]?.payload?.name || payload[0]?.payload?.label || 'Point Details'}
+          {formatLabel(label || payload[0]?.payload?.name || payload[0]?.payload?.label || 'Point Details')}
         </div>
         {payload.map((item: any, idx: number) => (
           <div key={idx} className="flex items-center justify-between gap-4 py-0.5 text-[var(--text-secondary)]">
             <span className="flex items-center gap-1.5 text-[var(--text-muted)]">
               <span
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: item.color || '#6366f1' }}
+                style={{ backgroundColor: item.color || item.payload?.fill || '#6366f1' }}
               />
-              <span className="capitalize">{item.name || 'Value'}:</span>
+              <span className="capitalize">{formatLabel(item.name || item.dataKey || 'Value')}:</span>
             </span>
             <span className="font-mono font-medium text-[var(--text-primary)]">
               {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
@@ -80,6 +92,9 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
         return { label: 'Time Series', variant: 'amber' as const, icon: TrendingUp }
       case 'bar':
         return { label: 'Categorical', variant: 'cyan' as const, icon: BarChart3 }
+      case 'pie':
+      case 'donut':
+        return { label: 'Distribution', variant: 'purple' as const, icon: PieIcon }
       case 'scatter':
         return { label: 'Correlation', variant: 'indigo' as const, icon: ScatterIcon }
       case 'cluster':
@@ -189,9 +204,42 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
         )
       }
 
+      case 'pie':
+      case 'donut': {
+        const nameKey = chart.xAxisKey || 'name'
+        const valueKey = chart.yAxisKey || 'value'
+
+        return (
+          <ResponsiveContainer width="100%" height={height}>
+            <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+              <Tooltip content={<CustomTooltip />} />
+              <Pie
+                data={chart.data}
+                dataKey={valueKey}
+                nameKey={nameKey}
+                cx="50%"
+                cy="50%"
+                innerRadius={height > 300 ? 60 : 38}
+                outerRadius={height > 300 ? 110 : 70}
+                paddingAngle={3}
+              >
+                {chart.data.map((_, index) => (
+                  <Cell
+                    key={`pie-cell-${index}`}
+                    fill={CLUSTER_COLORS[index % CLUSTER_COLORS.length]}
+                    stroke="rgba(0,0,0,0.2)"
+                    strokeWidth={1}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        )
+      }
+
       case 'scatter': {
-        const xKey = chart.xAxisKey || 'ad_spend'
-        const yKey = chart.yAxisKey || 'revenue'
+        const xKey = chart.xAxisKey || 'x'
+        const yKey = chart.yAxisKey || 'y'
 
         return (
           <ResponsiveContainer width="100%" height={height}>
@@ -200,7 +248,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
               <XAxis
                 type="number"
                 dataKey={xKey}
-                name={xKey}
+                name={formatLabel(chart.xAxisKey || 'X')}
                 stroke="#94a3b8"
                 fontSize={11}
                 tickLine={false}
@@ -210,7 +258,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
               <YAxis
                 type="number"
                 dataKey={yKey}
-                name={yKey}
+                name={formatLabel(chart.yAxisKey || 'Y')}
                 stroke="#94a3b8"
                 fontSize={11}
                 tickLine={false}
@@ -239,7 +287,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
               <XAxis
                 type="number"
                 dataKey={xKey}
-                name={xKey}
+                name={formatLabel(xKey)}
                 stroke="#94a3b8"
                 fontSize={11}
                 tickLine={false}
@@ -249,7 +297,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
               <YAxis
                 type="number"
                 dataKey={yKey}
-                name={yKey}
+                name={formatLabel(yKey)}
                 stroke="#94a3b8"
                 fontSize={11}
                 tickLine={false}
@@ -279,7 +327,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
               <XAxis
                 type="number"
                 dataKey={xKey}
-                name={xKey}
+                name={formatLabel(xKey)}
                 stroke="#94a3b8"
                 fontSize={11}
                 tickLine={false}
@@ -288,7 +336,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ chart, isHighlighted = fal
               <YAxis
                 type="number"
                 dataKey={yKey}
-                name={yKey}
+                name={formatLabel(yKey)}
                 stroke="#94a3b8"
                 fontSize={11}
                 tickLine={false}

@@ -153,17 +153,58 @@ def _build_columns(cleaned_df: pd.DataFrame, profiler: DataProfiler) -> list[dic
     return columns
 
 
+def _is_id_or_flag_column(col_name: str, series: pd.Series) -> bool:
+    """Identify if a column is an ID, index, key, or binary flag rather than a quantitative metric."""
+    lower = col_name.lower().strip()
+    id_terms = ["_id", "id_", "uuid", "guid", "ssn", "phone", "zipcode", "postal", "employee_id", "user_id", "cust_id"]
+    if any(t in lower for t in id_terms) or lower.startswith("id") or lower.endswith("_id") or lower == "id":
+        return True
+    # If it's an integer sequence or nearly all unique integers
+    if pd.api.types.is_numeric_dtype(series):
+        non_null = series.dropna()
+        if len(non_null) > 10 and non_null.nunique() == len(non_null):
+            return True
+        # If it's binary 0/1, it's a flag, not a continuous variable
+        if non_null.nunique() <= 2:
+            return True
+    return False
+
+
+def _humanize_title(name: str) -> str:
+    """Convert snake_case or survey prompts to readable titles."""
+    cleaned = (
+        name.replace("please_enter_your_", "")
+        .replace("please_select_your_", "")
+        .replace("please_enter_", "")
+        .replace("please_select_", "")
+        .replace("_", " ")
+        .strip()
+    )
+    return cleaned.title() if cleaned else name
+
+
 def _build_charts(cleaned_df: pd.DataFrame, evidence: dict) -> list[dict]:
     """Build chart items from evidence data for recharts."""
     charts = []
-    numeric_cols = [
+
+    # Distinguish true quantitative metric columns vs ID/categorical
+    all_numeric = [
         col for col in cleaned_df.columns
         if pd.api.types.is_numeric_dtype(cleaned_df[col])
     ]
+    numeric_cols = [
+        col for col in all_numeric
+        if not _is_id_or_flag_column(col, cleaned_df[col])
+    ]
+    # Fallback to all_numeric if no strict continuous columns found
+    if not numeric_cols:
+        numeric_cols = all_numeric
+
     categorical_cols = [
         col for col in cleaned_df.columns
         if pd.api.types.is_string_dtype(cleaned_df[col]) or
-           pd.api.types.is_categorical_dtype(cleaned_df[col])
+           pd.api.types.is_categorical_dtype(cleaned_df[col]) or
+           (pd.api.types.is_numeric_dtype(cleaned_df[col]) and _is_id_or_flag_column(col, cleaned_df[col]))
     ]
     datetime_cols = [
         col for col in cleaned_df.columns
@@ -172,7 +213,7 @@ def _build_charts(cleaned_df: pd.DataFrame, evidence: dict) -> list[dict]:
 
     sample = cleaned_df.head(200)
 
-    # Bar charts for categorical × numeric
+    # 1. Bar charts for categorical × numeric metric
     if categorical_cols and numeric_cols:
         cat_col = categorical_cols[0]
         for num_col in numeric_cols[:2]:
@@ -187,14 +228,14 @@ def _build_charts(cleaned_df: pd.DataFrame, evidence: dict) -> list[dict]:
                 charts.append({
                     "id": f"bar_{cat_col}_{num_col}",
                     "type": "bar",
-                    "title": f"{num_col} by {cat_col}",
-                    "caption": f"Average {num_col} grouped by {cat_col}",
+                    "title": f"{_humanize_title(num_col)} by {_humanize_title(cat_col)}",
+                    "caption": f"Average {_humanize_title(num_col)} grouped by {_humanize_title(cat_col)}",
                     "xAxisKey": cat_col,
                     "yAxisKey": num_col,
                     "data": _safe(grouped.to_dict(orient="records")),
                 })
 
-    # Scatter for numeric pairs
+    # 2. Scatter for continuous numeric pairs (non-ID)
     if len(numeric_cols) >= 2:
         for i in range(min(len(numeric_cols) - 1, 2)):
             x_col = numeric_cols[i]
@@ -202,21 +243,20 @@ def _build_charts(cleaned_df: pd.DataFrame, evidence: dict) -> list[dict]:
             scatter_data = (
                 sample[[x_col, y_col]]
                 .dropna()
-                .rename(columns={x_col: "x", y_col: "y"})
                 .head(150)
             )
             if not scatter_data.empty:
                 charts.append({
                     "id": f"scatter_{x_col}_{y_col}",
                     "type": "scatter",
-                    "title": f"{x_col} vs {y_col}",
-                    "caption": f"Scatter plot of {x_col} against {y_col}",
-                    "xAxisKey": "x",
-                    "yAxisKey": "y",
+                    "title": f"{_humanize_title(x_col)} vs {_humanize_title(y_col)}",
+                    "caption": f"Scatter plot of {_humanize_title(x_col)} against {_humanize_title(y_col)}",
+                    "xAxisKey": x_col,
+                    "yAxisKey": y_col,
                     "data": _safe(scatter_data.to_dict(orient="records")),
                 })
 
-    # Line charts for time series
+    # 3. Line charts for time series
     if datetime_cols and numeric_cols:
         date_col = datetime_cols[0]
         num_col = numeric_cols[0]
@@ -231,37 +271,46 @@ def _build_charts(cleaned_df: pd.DataFrame, evidence: dict) -> list[dict]:
             charts.append({
                 "id": f"line_{date_col}_{num_col}",
                 "type": "line",
-                "title": f"{num_col} over time",
-                "caption": f"Trend of {num_col} over {date_col}",
+                "title": f"{_humanize_title(num_col)} over time",
+                "caption": f"Trend of {_humanize_title(num_col)} over {_humanize_title(date_col)}",
                 "xAxisKey": date_col,
                 "yAxisKey": num_col,
                 "data": _safe(ts_data.to_dict(orient="records")),
             })
 
-    # Pie chart for top categorical
+    # 4. Pie chart for primary categorical distributions
     if categorical_cols:
-        cat_col = categorical_cols[0]
-        vc = cleaned_df[cat_col].value_counts(dropna=True).head(8)
-        if not vc.empty:
-            charts.append({
-                "id": f"pie_{cat_col}",
-                "type": "pie",
-                "title": f"Distribution of {cat_col}",
-                "caption": f"Share of each category in {cat_col}",
-                "xAxisKey": "name",
-                "yAxisKey": "value",
-                "data": _safe([{"name": str(k), "value": int(v)} for k, v in vc.items()]),
-            })
+        for cat_col in categorical_cols[:2]:
+            vc = cleaned_df[cat_col].value_counts(dropna=True).head(8)
+            if not vc.empty and len(vc) >= 2:
+                charts.append({
+                    "id": f"pie_{cat_col}",
+                    "type": "pie",
+                    "title": f"Distribution of {_humanize_title(cat_col)}",
+                    "caption": f"Share of each category in {_humanize_title(cat_col)}",
+                    "xAxisKey": "name",
+                    "yAxisKey": "value",
+                    "data": _safe([{"name": str(k), "value": int(v)} for k, v in vc.items()]),
+                })
 
     return charts
 
 
 def _build_correlations(cleaned_df: pd.DataFrame) -> dict:
-    """Build the correlation matrix for the heatmap."""
+    """Build the correlation matrix for quantitative metrics."""
     numeric_df = cleaned_df.select_dtypes(include="number")
-    if numeric_df.shape[1] < 2:
+    # Exclude ID or pure index columns from correlation matrix
+    valid_cols = [
+        col for col in numeric_df.columns
+        if not _is_id_or_flag_column(col, numeric_df[col])
+    ]
+    if len(valid_cols) < 2:
+        valid_cols = numeric_df.columns.tolist()
+
+    if len(valid_cols) < 2:
         return {"columns": [], "matrix": []}
-    corr = numeric_df.corr().fillna(0)
+
+    corr = numeric_df[valid_cols].corr().fillna(0)
     cols = corr.columns.tolist()
     matrix = [[_safe(corr.loc[r, c]) for c in cols] for r in cols]
     return {"columns": cols, "matrix": matrix}
@@ -609,3 +658,34 @@ def chat_stream(req: ChatRequest):
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@app.on_event("startup")
+def preload_samples():
+    """Pre-load sample datasets so the API always has ready demo data."""
+    samples_dir = os.path.join(os.path.dirname(__file__), "samples")
+    if not os.path.exists(samples_dir):
+        return
+    for fname in ["ecommerce_sales.csv", "customer_churn.csv"]:
+        fpath = os.path.join(samples_dir, fname)
+        if os.path.isfile(fpath):
+            try:
+                with open(fpath, "rb") as f:
+                    file_bytes = f.read()
+                dataset_id = f"sample-{fname.replace('.csv', '')}"
+                with _JOBS_LOCK:
+                    _JOBS[dataset_id] = {
+                        "status": {
+                            "stage": "detecting",
+                            "progress": 5,
+                            "message": "Loading sample…",
+                            "currentStepIndex": 0,
+                            "error": None,
+                        },
+                        "result": None,
+                        "filename": fname,
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                _executor.submit(_run_pipeline, dataset_id, file_bytes, fname)
+            except Exception as e:
+                print(f"Failed to preload sample {fname}: {e}")

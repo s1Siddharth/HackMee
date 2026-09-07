@@ -11,6 +11,15 @@ interface CorrelationHeatmapProps {
   matrix: number[][]
 }
 
+const formatColName = (str: string) => {
+  if (!str) return ''
+  return str
+    .replace(/^please_(?:enter|select)_your_/i, '')
+    .replace(/^please_(?:enter|select)_/i, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
   columns,
   matrix,
@@ -59,12 +68,12 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
               <Grid className="w-3.5 h-3.5" />
             </div>
             <h3 className="text-sm sm:text-base font-semibold text-[var(--text-primary)] tracking-tight">
-              Feature Correlation Matrix (Pearson r)
+              Metric Correlation Heatmap
             </h3>
-            <Badge variant="indigo" size="sm">Automated</Badge>
+            <Badge variant="indigo" size="sm">Pearson r (-1 to +1)</Badge>
           </div>
           <p className="text-xs text-[var(--text-secondary)]">
-            Interactive heatmap revealing collinearities and cross-feature dependencies across numeric columns
+            Statistical correlation matrix revealing collinearity and dependencies across quantitative metrics
           </p>
         </div>
 
@@ -76,7 +85,7 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
           </span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded bg-gray-300 dark:bg-white/10 inline-block" />
-            <span>0.0</span>
+            <span>0.0 (None)</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded bg-indigo-600 inline-block" />
@@ -92,15 +101,15 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
             <thead>
               <tr>
                 <th className="p-2 text-left text-[11px] font-mono text-[var(--text-muted)] uppercase tracking-wider min-w-[120px]">
-                  Feature
+                  Metric
                 </th>
                 {columns.map((col) => (
                   <th
                     key={col}
-                    className="p-2 text-center text-[11px] font-mono text-[var(--text-secondary)] font-medium min-w-[85px] truncate max-w-[110px]"
+                    className="p-2 text-center text-[11px] font-sans text-[var(--text-secondary)] font-medium min-w-[95px] max-w-[130px] truncate"
                     title={col}
                   >
-                    {col}
+                    {formatColName(col)}
                   </th>
                 ))}
               </tr>
@@ -108,8 +117,8 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
             <tbody>
               {columns.map((rowCol, rowIndex) => (
                 <tr key={rowCol} className="border-t border-[var(--border-subtle)]">
-                  <td className="p-2 text-[11px] font-mono font-medium text-[var(--text-primary)] truncate max-w-[120px]" title={rowCol}>
-                    {rowCol}
+                  <td className="p-2 text-[11px] font-sans font-medium text-[var(--text-primary)] truncate max-w-[130px]" title={rowCol}>
+                    {formatColName(rowCol)}
                   </td>
                   {columns.map((colCol, colIndex) => {
                     const value = matrix[rowIndex]?.[colIndex] ?? 0

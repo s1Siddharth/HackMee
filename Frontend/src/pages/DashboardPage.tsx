@@ -109,16 +109,32 @@ export const DashboardPage: React.FC = () => {
 
   // Error State
   if (error || !analysis) {
+    const is404 = error?.includes('404') || error?.includes('not found')
     return (
       <Shell>
-        <div className="py-20 max-w-md mx-auto text-center">
+        <div className="py-20 max-w-lg mx-auto text-center space-y-4">
           <EmptyState
-            icon={AlertCircle}
-            title="Analysis Unavailable"
-            description={error || 'Could not load analysis results from the backend.'}
-            actionLabel="Try Again"
-            onAction={() => loadAnalysis(datasetId)}
+            icon={is404 ? UploadCloud : AlertCircle}
+            title={is404 ? "Dataset Session Expired or Not Found" : "Analysis Unavailable"}
+            description={
+              is404
+                ? "The dataset was either cleared on server reload or has not been uploaded yet. Upload a CSV or Excel file to generate instant visual insights."
+                : (error || 'Could not load analysis results from the backend.')
+            }
+            actionLabel="Upload New Dataset"
+            onAction={() => navigate('/upload')}
           />
+          {is404 && (
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadAnalysis(datasetId)}
+              >
+                Retry Connection
+              </Button>
+            </div>
+          )}
         </div>
       </Shell>
     )
