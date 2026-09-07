@@ -10,12 +10,13 @@ dependencies = [
     "numpy",
     "openpyxl",
     "plotly",
-    "groq",
+    "openai>=1.0.0",
     "python-dotenv",
     "scikit-learn",
     "fastapi",
     "uvicorn[standard]",
     "python-multipart",
+    "httpx>=0.28.1",
 ]
 
 [build-system]

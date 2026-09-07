@@ -19,28 +19,29 @@ class InsightPromptBuilder:
         return f"""
 Analyze the following dataset evidence.
 
-IMPORTANT RULES:
+IMPORTANT FORMATTING RULES:
+1. Keep the output concise, crisp, and executive-ready.
+2. Use short bullet points with bold key metrics (e.g. **Age: 49.8 yrs**, **Low Risk: 50%**).
+3. Do not output long dense paragraphs.
+4. Do not invent numbers; use only supplied evidence.
 
-1. Use only the supplied evidence.
-2. Do not invent numbers.
-3. Do not claim causation unless the evidence supports it.
-4. Highlight meaningful trends and patterns.
-5. Identify potential risks.
-6. Provide practical business recommendations.
-7. If the evidence is insufficient for a conclusion,
-   explicitly say so.
+Return the response strictly formatted under these markdown section headers:
 
-Return the response using these sections:
+**EXECUTIVE SUMMARY**
+* [1-2 concise bullet points summarizing population and primary outcome]
 
-EXECUTIVE SUMMARY
+**KEY FINDINGS**
+* [Short bullet with bold key metric: value]
+* [Short bullet with bold key metric: value]
 
-KEY FINDINGS
+**RISKS**
+* [Short bullet with identified risk factor]
+* [Short bullet with identified risk factor]
 
-RISKS
-
-RECOMMENDATIONS
+**RECOMMENDATIONS**
+* [Actionable bullet point]
+* [Actionable bullet point]
 
 EVIDENCE:
-
 {evidence_json}
 """
