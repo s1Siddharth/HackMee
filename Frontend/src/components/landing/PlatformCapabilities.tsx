@@ -7,14 +7,7 @@ import {
   AlertTriangle,
   TrendingUp,
   Bot,
-  Sparkles,
-  Layers,
-  Activity,
-  SlidersHorizontal,
-  ShieldAlert,
-  PieChart,
-  BrainCircuit,
-  CheckCircle2
+  Sparkles
 } from 'lucide-react'
 
 interface CapabilityItem {
@@ -23,11 +16,9 @@ interface CapabilityItem {
   secondaryEmoji: string
   title: string
   subtitle: string
-  highlight: string
-  bullets: string[]
+  description: React.ReactNode
   icon: React.ComponentType<{ className?: string }>
   theme: {
-    accentGradient: string
     badgeBg: string
     badgeText: string
     badgeBorder: string
@@ -49,16 +40,13 @@ const CAPABILITIES: CapabilityItem[] = [
     secondaryEmoji: '🧹',
     title: 'Automated Data Cleaning',
     subtitle: 'Self-healing tabular pipelines',
-    highlight: 'Instant multi-format normalization & repair',
-    bullets: [
-      'Automatic deduplication & text whitespace stripping',
-      'Intelligent missing value imputation via KNN & median models',
-      'Automatic datetime conversion across diverse schemas',
-      'Audit log with side-by-side Before vs. After diff viewer'
-    ],
+    description: (
+      <>
+        <strong>Deduplication</strong>, type casting, and smart <strong>missing value imputation</strong> via KNN & median models.
+      </>
+    ),
     icon: Wand2,
     theme: {
-      accentGradient: 'from-emerald-400 to-teal-400',
       badgeBg: 'bg-emerald-500/15',
       badgeText: 'text-emerald-400',
       badgeBorder: 'border-emerald-500/30',
@@ -70,7 +58,7 @@ const CAPABILITIES: CapabilityItem[] = [
       tagBorder: 'border-emerald-500/20',
       tagText: 'text-emerald-300'
     },
-    tags: ['KNN Imputer', 'Deduplication', 'Type Casting', 'Diff Viewer']
+    tags: ['KNN Imputer', 'Deduplication', 'Type Casting']
   },
   {
     id: 'profiling',
@@ -78,16 +66,13 @@ const CAPABILITIES: CapabilityItem[] = [
     secondaryEmoji: '📊',
     title: 'Deep Dataset Profiling',
     subtitle: 'Comprehensive schema intelligence',
-    highlight: 'Automated statistical scanning & health metrics',
-    bullets: [
-      '0–100 Data Quality Health Score calculation',
-      'Semantic column classification (# Numeric, 🔤 Categorical, 📅 Date)',
-      'Distribution dynamics, null percentages & cardinality metrics',
-      'Automated schema alerts for missing values and skewness'
-    ],
+    description: (
+      <>
+        <strong>0–100 Quality Score</strong>, semantic type tagging (numeric/date), and automated <strong>null ratio alerts</strong>.
+      </>
+    ),
     icon: BarChart3,
     theme: {
-      accentGradient: 'from-indigo-400 to-blue-400',
       badgeBg: 'bg-indigo-500/15',
       badgeText: 'text-indigo-400',
       badgeBorder: 'border-indigo-500/30',
@@ -99,7 +84,7 @@ const CAPABILITIES: CapabilityItem[] = [
       tagBorder: 'border-indigo-500/20',
       tagText: 'text-indigo-300'
     },
-    tags: ['Quality Score', 'Schema Detection', 'Null Ratio', 'Cardinality']
+    tags: ['Quality Score', 'Schema Detection', 'Null Ratio']
   },
   {
     id: 'filtering',
@@ -107,16 +92,13 @@ const CAPABILITIES: CapabilityItem[] = [
     secondaryEmoji: '🔍',
     title: 'Dynamic Filtering',
     subtitle: 'Multi-dimensional data slicing',
-    highlight: 'Real-time interactive segment exploration',
-    bullets: [
-      'Instant global keyword search across all attributes',
-      'Categorical multi-select slicers with live count recalculation',
-      'Numeric range sliders with dual min/max bounds',
-      'Reactive recalculation of all charts upon filter changes'
-    ],
+    description: (
+      <>
+        <strong>Global search</strong>, multi-select category chips, and <strong>numeric range sliders</strong> with live updates.
+      </>
+    ),
     icon: Filter,
     theme: {
-      accentGradient: 'from-cyan-400 to-sky-400',
       badgeBg: 'bg-cyan-500/15',
       badgeText: 'text-cyan-400',
       badgeBorder: 'border-cyan-500/30',
@@ -128,7 +110,7 @@ const CAPABILITIES: CapabilityItem[] = [
       tagBorder: 'border-cyan-500/20',
       tagText: 'text-cyan-300'
     },
-    tags: ['Multi-Condition', 'Range Sliders', 'Categorical Slicers', 'Instant Search']
+    tags: ['Multi-Condition', 'Range Sliders', 'Categorical Slicers']
   },
   {
     id: 'anomaly',
@@ -136,16 +118,13 @@ const CAPABILITIES: CapabilityItem[] = [
     secondaryEmoji: '🛡️',
     title: 'ML Anomaly Detection',
     subtitle: 'Dual-layer statistical screening',
-    highlight: 'Unsupervised machine learning & IQR boundaries',
-    bullets: [
-      'Statistical IQR outlier fencing (1.5x interquartile fences)',
-      'Scikit-Learn Isolation Forest multi-variable anomaly scoring',
-      'Extreme value impact assessment on column standard deviations',
-      'Data drift and skewness boundary warnings'
-    ],
+    description: (
+      <>
+        <strong>IQR statistical fences</strong> and Scikit-Learn <strong>Isolation Forest ML</strong> for anomaly flags.
+      </>
+    ),
     icon: AlertTriangle,
     theme: {
-      accentGradient: 'from-rose-400 to-pink-400',
       badgeBg: 'bg-rose-500/15',
       badgeText: 'text-rose-400',
       badgeBorder: 'border-rose-500/30',
@@ -157,7 +136,7 @@ const CAPABILITIES: CapabilityItem[] = [
       tagBorder: 'border-rose-500/20',
       tagText: 'text-rose-300'
     },
-    tags: ['Isolation Forest', 'IQR Boundaries', 'Z-Score Fences', 'Drift Alerts']
+    tags: ['Isolation Forest', 'IQR Boundaries', 'Z-Score Fences']
   },
   {
     id: 'visualization',
@@ -165,16 +144,13 @@ const CAPABILITIES: CapabilityItem[] = [
     secondaryEmoji: '💎',
     title: 'Interactive Visualizations',
     subtitle: 'High-performance visual rendering',
-    highlight: 'Optimized Recharts & Pearson correlation heatmaps',
-    bullets: [
-      'Dynamic Recharts (Bar, Line, Scatter, Area, Distributions)',
-      'Interactive Pearson Correlation Matrix with hover tooltips',
-      'Adaptive binning & smart chart recommendation heuristics',
-      'Export full analytical dashboards as high-resolution PDF or PNG'
-    ],
+    description: (
+      <>
+        Dynamic <strong>Recharts</strong>, interactive <strong>Pearson correlation heatmap</strong>, and 1-click PDF/PNG export.
+      </>
+    ),
     icon: TrendingUp,
     theme: {
-      accentGradient: 'from-amber-400 to-orange-400',
       badgeBg: 'bg-amber-500/15',
       badgeText: 'text-amber-400',
       badgeBorder: 'border-amber-500/30',
@@ -186,7 +162,7 @@ const CAPABILITIES: CapabilityItem[] = [
       tagBorder: 'border-amber-500/20',
       tagText: 'text-amber-300'
     },
-    tags: ['Recharts/Plotly', 'Correlation Matrix', 'Adaptive Binning', 'PDF Export']
+    tags: ['Recharts/Plotly', 'Correlation Matrix', 'Adaptive Binning']
   },
   {
     id: 'ai-analyst',
@@ -194,16 +170,13 @@ const CAPABILITIES: CapabilityItem[] = [
     secondaryEmoji: '🤖',
     title: 'AI Data Analyst',
     subtitle: 'Automated executive narrative',
-    highlight: 'Zero-hallucination insights with streaming chat',
-    bullets: [
-      'Structured Executive Summary, Key Findings, Risks & Actions',
-      'Grounded strictly on computed statistical evidence JSON',
-      'SSE streaming conversational assistant with dataset memory',
-      'Live <thinking> transparent reasoning step-by-step display'
-    ],
+    description: (
+      <>
+        Plain-language <strong>executive summary</strong> and <strong>streaming AI chat</strong> with visible reasoning.
+      </>
+    ),
     icon: Bot,
     theme: {
-      accentGradient: 'from-purple-400 to-fuchsia-400',
       badgeBg: 'bg-purple-500/15',
       badgeText: 'text-purple-400',
       badgeBorder: 'border-purple-500/30',
@@ -215,24 +188,24 @@ const CAPABILITIES: CapabilityItem[] = [
       tagBorder: 'border-purple-500/20',
       tagText: 'text-purple-300'
     },
-    tags: ['Executive Bullets', 'Evidence Extraction', 'Actionable Insights', 'SSE Stream']
+    tags: ['Executive Bullets', 'Evidence Extraction', 'Actionable Insights']
   }
 ]
 
 export const PlatformCapabilities: React.FC = () => {
   return (
-    <section id="capabilities" className="w-full max-w-7xl mx-auto mt-28 px-4 text-left scroll-mt-24">
+    <section id="capabilities" className="w-full max-w-6xl mx-auto mt-20 px-4 text-left scroll-mt-24">
       {/* Section Header */}
-      <div className="text-center max-w-3xl mx-auto mb-16">
+      <div className="text-center max-w-2xl mx-auto mb-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-500 dark:text-indigo-300 text-xs font-semibold mb-4 shadow-sm backdrop-blur-md"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-500 dark:text-indigo-300 text-xs font-semibold mb-3 shadow-sm"
         >
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
-          <span>AUTONOMOUS INTELLIGENCE LAYER</span>
+          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Core Capabilities</span>
         </motion.div>
 
         <motion.h2
@@ -240,12 +213,9 @@ export const PlatformCapabilities: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
-          className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[var(--text-primary)] font-['Space_Grotesk',sans-serif]"
+          className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[var(--text-primary)] font-['Space_Grotesk',sans-serif]"
         >
-          What This Platform{' '}
-          <span className="bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            Provides
-          </span>
+          What This Platform Provides
         </motion.h2>
 
         <motion.p
@@ -253,63 +223,56 @@ export const PlatformCapabilities: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="text-sm sm:text-base text-[var(--text-secondary)] mt-4 leading-relaxed font-normal"
+          className="text-xs sm:text-sm text-[var(--text-secondary)] mt-2 font-normal"
         >
-          An autonomous intelligence suite engineered to replace hours of manual data wrangling, statistical validation, and executive presentation preparation.
+          An autonomous intelligence layer engineered to replace hours of manual data wrangling, statistical validation, and presentation prep.
         </motion.p>
       </div>
 
-      {/* 6 Capabilities Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+      {/* 6 Compact Capabilities Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {CAPABILITIES.map((item, index) => {
           const Icon = item.icon
 
           return (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
+              viewport={{ once: true, margin: '-20px' }}
               transition={{
-                duration: 0.45,
-                delay: index * 0.08,
-                ease: [0.21, 0.47, 0.32, 0.98]
+                duration: 0.35,
+                delay: index * 0.05,
+                ease: 'easeOut'
               }}
-              whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              className={`group relative rounded-3xl border border-[var(--border-subtle)] ${item.theme.cardBorderHover} bg-[var(--bg-card)] p-7 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden backdrop-blur-sm`}
+              whileHover={{ y: -4, transition: { duration: 0.15 } }}
+              className={`group relative rounded-2xl border border-[var(--border-subtle)] ${item.theme.cardBorderHover} bg-[var(--bg-card)] p-5 shadow-md hover:shadow-xl transition-all duration-200 flex flex-col justify-between overflow-hidden`}
             >
               {/* Top ambient highlight line on hover */}
               <div
-                className="absolute inset-x-8 -top-px h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                className="absolute inset-x-6 -top-px h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                 style={{
                   background: `linear-gradient(to right, transparent, ${item.theme.glowColor}, transparent)`
                 }}
               />
 
-              {/* Radial gradient background splash on hover */}
-              <div
-                className="absolute -top-24 -right-24 w-52 h-52 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none"
-                style={{ background: item.theme.glowColor }}
-              />
-
               <div>
-                {/* Header: Icon, Dual Emojis & Active Pulse Badge */}
-                <div className="flex items-center justify-between gap-3 mb-5">
-                  <div className="flex items-center gap-3">
+                {/* Header: Icon, Emojis & Active Tag */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2.5">
                     <div
-                      className={`w-12 h-12 rounded-2xl border ${item.theme.iconBg} ${item.theme.iconColor} flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-inner`}
+                      className={`w-9 h-9 rounded-xl border ${item.theme.iconBg} ${item.theme.iconColor} flex items-center justify-center transition-transform group-hover:scale-105`}
                     >
-                      <Icon className="w-6 h-6 stroke-[2]" />
+                      <Icon className="w-4 h-4 stroke-[2]" />
                     </div>
-                    <div className="flex items-center gap-1.5 text-2xl select-none">
+                    <div className="flex items-center gap-1 text-lg select-none">
                       <span>{item.emoji}</span>
                       <span>{item.secondaryEmoji}</span>
                     </div>
                   </div>
 
-                  {/* Active Status Badge with Pulsing Green Dot */}
                   <span
-                    className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${item.theme.badgeBg} ${item.theme.badgeText} ${item.theme.badgeBorder} shadow-sm`}
+                    className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${item.theme.badgeBg} ${item.theme.badgeText} ${item.theme.badgeBorder}`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     ACTIVE
@@ -317,35 +280,25 @@ export const PlatformCapabilities: React.FC = () => {
                 </div>
 
                 {/* Title and Subtitle */}
-                <h3 className="text-xl font-bold text-[var(--text-primary)] group-hover:text-white transition-colors tracking-tight">
+                <h3 className="text-base font-bold text-[var(--text-primary)] group-hover:text-white transition-colors tracking-tight">
                   {item.title}
                 </h3>
-                <div className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 mt-1 mb-2.5">
+                <div className="text-[11px] font-medium text-indigo-500 dark:text-indigo-400 mb-2">
                   {item.subtitle}
                 </div>
 
-                {/* Highlight Badge */}
-                <div className="inline-block text-[11px] font-medium text-[var(--text-secondary)] bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)] px-2.5 py-1 rounded-lg mb-4">
-                  ⚡ <span className="font-semibold text-[var(--text-primary)]">{item.highlight}</span>
-                </div>
-
-                {/* Detailed Bullet Points */}
-                <ul className="space-y-2 mt-1 mb-4 text-xs text-[var(--text-secondary)]">
-                  {item.bullets.map((bullet, bIdx) => (
-                    <li key={bIdx} className="flex items-start gap-2 leading-relaxed">
-                      <CheckCircle2 className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${item.theme.iconColor}`} />
-                      <span>{bullet}</span>
-                    </li>
-                  ))}
-                </ul>
+                {/* Compact Description with Bold Key Terms */}
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  {item.description}
+                </p>
               </div>
 
               {/* Bottom Feature Tags */}
-              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex flex-wrap gap-1.5">
+              <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex flex-wrap gap-1.5">
                 {item.tags.map((tag, tagIndex) => (
                   <span
                     key={tagIndex}
-                    className={`px-2.5 py-1 rounded-md border text-[10px] font-mono font-medium ${item.theme.tagBg} ${item.theme.tagBorder} ${item.theme.tagText} transition-all`}
+                    className="px-2 py-0.5 rounded-md bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors"
                   >
                     {tag}
                   </span>
