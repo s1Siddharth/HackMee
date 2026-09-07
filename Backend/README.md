@@ -12,9 +12,9 @@ Upload datasets directly through the dashboard.
 
 **Supported formats:**
 
-* CSV
+* CSV (`.csv`)
 * Excel (`.xlsx`)
-* JSON
+* JSON (`.json`)
 
 The application validates the uploaded dataset before processing.
 
