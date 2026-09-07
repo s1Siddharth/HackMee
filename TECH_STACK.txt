@@ -1,0 +1,169 @@
+================================================================================
+                    HACKMEE - COMPLETE TECH STACK & DASHBOARD GUIDE
+================================================================================
+
+This document details the complete technology stack used across the HackMee 
+project, the specific technical rationale behind each choice, and how the 
+interactive analytics dashboard is constructed.
+
+================================================================================
+1. BACKEND ARCHITECTURE & REASONS
+================================================================================
+
+1.1 FastAPI (Python 3.11+)
+    - Purpose: Main API Gateway and asynchronous server.
+    - Why Used:
+      * Exceptional high throughput and low latency (built on Starlette & Uvicorn).
+      * Native async support for non-blocking file ingestion and background job dispatch.
+      * Built-in support for Server-Sent Events (SSE) to stream AI tokens to the UI.
+      * Auto-generated interactive OpenAPI / Swagger documentation at `/docs`.
+
+1.2 uv (Astral)
+    - Purpose: Ultra-fast Python package and virtual environment manager.
+    - Why Used:
+      * 10x–100x faster than traditional pip / poetry.
+      * Generates a deterministic `uv.lock` ensuring identical dependencies across team environments.
+
+1.3 Pandas & NumPy
+    - Purpose: Tabular data ingestion, cleaning, manipulation, and statistical transformations.
+    - Why Used:
+      * Industry standard for data manipulation in Python.
+      * Vectorized numerical operations for high-speed profiling and statistical calculations.
+      * Flexible schema inference across CSV, Excel (.xlsx), and JSON formats.
+
+1.4 Scikit-Learn (sklearn)
+    - Purpose: Machine Learning anomaly detection and advanced statistical preprocessing.
+    - Why Used:
+      * Isolation Forest: Unsupervised machine learning to detect multi-dimensional anomalies and outliers.
+      * Robust statistical tools for variance analysis, scaling, and imputation.
+
+1.5 Plotly & Custom Analytics Engine
+    - Purpose: Statistical chart generation, distribution binning, and Pearson correlation matrices.
+    - Why Used:
+      * Generates rich JSON payload structures consumed by the reactive frontend visualization components.
+
+================================================================================
+2. FRONTEND ARCHITECTURE & REASONS
+================================================================================
+
+2.1 React 19 + TypeScript
+    - Purpose: Core user interface and component architecture.
+    - Why Used:
+      * Type Safety: Strict interfaces (`types.ts`) matching backend API contracts prevent runtime bugs.
+      * React 19: High-performance concurrent rendering and modern hook paradigms.
+
+2.2 Vite 6
+    - Purpose: Frontend build tool and development server.
+    - Why Used:
+      * Lightning-fast Hot Module Replacement (HMR) during development.
+      * Optimized Rollup-based production bundling with automatic tree-shaking.
+
+2.3 TailwindCSS v4
+    - Purpose: Modern utility-first design system and styling.
+    - Why Used:
+      * Pure CSS variables with zero runtime overhead.
+      * Flexible glassmorphism, responsive grid layouts, and curated dark-mode color palettes.
+
+2.4 Recharts
+    - Purpose: Declarative, interactive SVG chart rendering for the dashboard.
+    - Why Used:
+      * Native React integration with responsive container sizing (`ResponsiveContainer`).
+      * Smooth tooltips, animated transitions, custom axes, and multi-type chart support (Bar, Line, Scatter, Area).
+
+2.5 Zustand
+    - Purpose: Global client-side state management (`useAnalysisStore.ts`, `useThemeStore.ts`).
+    - Why Used:
+      * Minimal footprint (less than 1KB) with zero boilerplate compared to Redux.
+      * Centralizes dataset lifecycle, polling state, active filters, and chat session state.
+
+2.6 Framer Motion & Lucide Icons
+    - Purpose: Micro-animations, page transitions, and modern vector iconography.
+    - Why Used:
+      * Fluid step transitions during the 4-stage data processing pipeline.
+      * High-quality, consistent iconography for column data types and dashboard metrics.
+
+2.7 jsPDF & html2canvas
+    - Purpose: Client-side report export engine.
+    - Why Used:
+      * Enables 1-click snapshot export of the full analytics dashboard to high-resolution PDF and PNG.
+
+================================================================================
+3. AI & LLM INFERENCE ENGINE & REASONS
+================================================================================
+
+3.1 Tri-Tier Multi-Provider Fallback Architecture
+    - Provider 1 (Primary): NVIDIA NIM API (Meta LLaMA 3.2 11B Vision & Nemotron Super)
+    - Provider 2 (Fallback 1): Groq Cloud (Llama 3.3 70B Versatile)
+    - Provider 3 (Fallback 2): OpenRouter (Minimax M3 & Nemotron Free Tier)
+    - Why Used:
+      * High Availability: If one provider experiences rate limits or network downtime, the system automatically falls back to the next provider with zero user disruption.
+      * Sub-second latency for real-time executive summaries.
+
+3.2 Evidence-Grounded Prompting (`prompt_builder.py`)
+    - Purpose: Strict anti-hallucination prompt construction.
+    - Why Used:
+      * Enforces that the LLM only uses computed statistical evidence JSON (averages, correlations, null counts, outliers).
+      * Generates crisp, executive-ready outputs (Executive Summary, Key Findings, Risks, Recommendations).
+
+3.3 Server-Sent Events (SSE) Streaming Assistant (`/chat/stream`)
+    - Purpose: Real-time conversational AI token streaming.
+    - Why Used:
+      * Live token delivery for instant responsiveness.
+      * Transparent `<thinking>` reasoning display so users can inspect the AI's internal thought process.
+
+================================================================================
+4. WHAT IS USED FOR THE DASHBOARD (COMPONENT BREAKDOWN)
+================================================================================
+
+The HackMee interactive dashboard is located at `Frontend/src/pages/DashboardPage.tsx`
+and is assembled from the following modular components:
+
+4.1 Summary Panel (`SummaryPanel.tsx`)
+    - Tech: React, TailwindCSS, Lucide Icons, Framer Motion.
+    - Functionality: Displays the 0–100 Data Quality Score, row/column counts, missing records handled, duplicates removed, and the plain-language AI Executive Summary.
+
+4.2 Column Schema Explorer (`ColumnCard.tsx`)
+    - Tech: React, TypeScript, Badge tokens.
+    - Functionality: Shows column chips classified with semantic icons (# Numeric, A Categorical, Date), data type distributions, cardinality, and null percentages.
+
+4.3 Interactive Chart Studio (`ChartCard.tsx`)
+    - Tech: Recharts (ResponsiveContainer, BarChart, LineChart, ScatterChart, AreaChart, Tooltip, Legend).
+    - Functionality: Dynamically renders recommended visualizations, supports fullscreen expansion modal, custom axis selectors, and data slice drill-downs.
+
+4.4 Pearson Correlation Heatmap (`CorrelationHeatmap.tsx`)
+    - Tech: React, Custom SVG grid, dynamic HSL color mapping.
+    - Functionality: Interactive correlation matrix showing linear dependencies (r = -1.0 to +1.0) with interactive hover tooltips highlighting key driving factors.
+
+4.5 ML Anomaly & Outlier Panel (`OutliersAndClusters.tsx`)
+    - Tech: React, Scikit-Learn Isolation Forest & IQR fences.
+    - Functionality: Displays outlier severity flags, extreme value counts per column, and standard deviation distortion metrics.
+
+4.6 Before vs. After Data Diff Table (`DataTable.tsx`)
+    - Tech: React, Virtualized pagination, Search filter, Diff highlighting.
+    - Functionality: Searchable data grid with toggleable "Raw vs. Cleaned" view highlighting modified cells, parsed dates, and imputed missing values.
+
+4.7 Floating Conversational AI Drawer (`AIChatPanel.tsx`)
+    - Tech: React, EventSource / Fetch SSE stream parser, Framer Motion.
+    - Functionality: Slide-out chat drawer allowing users to ask natural-language questions about their dataset, showing live streamed tokens and collapsible thinking blocks.
+
+4.8 Export & Share Menu (`ExportMenu.tsx`)
+    - Tech: jsPDF, html2canvas, Web Share API.
+    - Functionality: Exports the visual dashboard as high-resolution PDF reports or PNG image cards, and copies shareable session links.
+
+================================================================================
+5. QUICK SUMMARY TABLE
+================================================================================
+
+Layer                 Technologies
+--------------------------------------------------------------------------------
+Backend API           FastAPI, Uvicorn, Python 3.11+, uv
+Data Processing       Pandas, NumPy, Scikit-Learn (Isolation Forest)
+Frontend Framework    React 19, TypeScript, Vite 6
+Styling & Design      TailwindCSS v4, Lucide Icons, Framer Motion
+Visualizations        Recharts, Plotly, Custom SVG Heatmaps
+State Management      Zustand
+AI / LLM Engine       NVIDIA NIM, Groq, OpenRouter (Llama 3.2, 3.3, Nemotron)
+Streaming             Server-Sent Events (SSE)
+Exporting             jsPDF, html2canvas
+
+================================================================================
